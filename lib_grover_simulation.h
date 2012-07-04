@@ -1,6 +1,16 @@
 #ifndef LIB_GROVER_SIMULATION_CC
 #define LIB_GROVER_SIMULATION_CC
 
+void print_vector(gsl_vector *v,size_t size)
+{
+	int i;
+	for(i=0;i<size;i++)
+	{
+			printf("%g\t",gsl_vector_get(v,i));
+	}
+	printf("\n\n");
+}
+
 void print_matrix(gsl_matrix *H,size_t size)
 {
 	int i,j;
@@ -8,10 +18,11 @@ void print_matrix(gsl_matrix *H,size_t size)
 	{
 		for(j=0;j<size;j++)
 		{
-			printf("%g\t",gsl_matrix_get(H, i, j));
+			printf("%g ",gsl_matrix_get(H, i, j));
 		}
 		printf("\n");
 	}
+	printf("\n\n");
 }
 
 

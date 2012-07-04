@@ -1,10 +1,16 @@
 #include <stdio.h>
 #include <math.h>
-//#include <stdlib.h>
 
 #include <gsl/gsl_matrix.h>
+#include <gsl/gsl_eigen.h>
 
 #include "lib_grover_simulation.h"
+
+/* 
+ *
+ *		!!! check return values
+ *
+ */
 
 int main(int argc, char **argv)
 {
@@ -44,12 +50,17 @@ int main(int argc, char **argv)
 		   matelem_sum,
 		   *szmatelem;
 
+	gsl_matrix *H,
+			   *vectors;
+	gsl_eigen_symmv_workspace *eigen_workspace;
+	gsl_vector *energies;
+
 	for(Np=Np_start;Np<=Np_stop;Np++) {
 		printf("Np = %d\n",Np);
-		// Get maxtrix size
+		// Get matrix size
 		matrix_size = compute_matrix_size(Np+1,M);
 		// Allocate matrix
-		gsl_matrix *H = gsl_matrix_alloc(matrix_size,matrix_size);
+		H = gsl_matrix_alloc(matrix_size,matrix_size);
 		// Allocate combfactor and szmatelem arrays
 		combfactor = (double*)malloc(matrix_size*sizeof(double));
 		szmatelem  = (double*)malloc(matrix_size*sizeof(double));
@@ -88,19 +99,31 @@ int main(int argc, char **argv)
 					gsl_matrix_set(H,rows_iterator,columns_iterator,pow(Np,2)*(matelem_product));
 
 
-				//free(statens)
-				//free(combfactor)
 			}
 		}
 		print_matrix(H,matrix_size);
-		/*
-		   int i;
-		   for(i=0;i<M;i++) {
-		   printf("statensp[%d] = %d\n",i,statensp[i]);
-		   printf("statens[%d] = %d\n",i,statens[i]);
-		   }
-		   */
-		//gsl_matrix_free(H);
+		fflush(stdout);
+		// Free no more needed arrays for this value of Np (size will increase with Np incrementation) :
+		free(statens);
+		free(statensp);
+
+		// Allocate workspace needed by the gsl library
+		eigen_workspace = gsl_eigen_symmv_alloc(matrix_size);
+		// Allocate matrix and vector :
+		energies = gsl_vector_alloc(matrix_size);
+		vectors = gsl_matrix_alloc(matrix_size,matrix_size);
+		// Get eigenvalues (energies) and eigenvectors (vectors) of H :
+		gsl_eigen_symmv(H,energies,vectors,eigen_workspace);
+		// H is no more needed :
+		gsl_matrix_free(H);
+
+		printf("eigenvalues : \n\n");
+		print_vector(energies,matrix_size);
+		printf("neigenvector : \n\n");
+		print_matrix(vectors,matrix_size);
+
+		//free(combfactor);
+		//free(szmatelem);
 	}
 	return 0;
 }

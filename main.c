@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 		matelem_iterator,
 		matelem_sum_iterator;
 
-	int *statens,
+	double *statens,
 		*statensp;
 
 	size_t matrix_size;
@@ -55,8 +55,13 @@ int main(int argc, char **argv)
 	gsl_eigen_symmv_workspace *eigen_workspace;
 	gsl_vector *energies;
 
+	printf("Starting at : ");
+	system("date");
+	printf("\n");
+	fflush(stdout);
+
 	for(Np=Np_start;Np<=Np_stop;Np++) {
-		printf("Np = %d\n",Np);
+		//printf("Np = %d\n",Np);
 		// Get matrix size
 		matrix_size = compute_matrix_size(Np+1,M);
 		// Allocate matrix
@@ -102,7 +107,6 @@ int main(int argc, char **argv)
 			}
 		}
 		print_matrix(H,matrix_size);
-		fflush(stdout);
 		// Free no more needed arrays for this value of Np (size will increase with Np incrementation) :
 		free(statens);
 		free(statensp);
@@ -116,15 +120,20 @@ int main(int argc, char **argv)
 		gsl_eigen_symmv(H,energies,vectors,eigen_workspace);
 		// H is no more needed :
 		gsl_matrix_free(H);
-
+/*
 		printf("eigenvalues : \n\n");
 		print_vector(energies,matrix_size);
-		printf("neigenvector : \n\n");
+		printf("eigenvectors : \n\n");
 		print_matrix(vectors,matrix_size);
-
+*/
 		//free(combfactor);
 		//free(szmatelem);
+		printf("Np=%d completed at : ",Np);
+	system("date");
+	printf("\n");
+	fflush(stdout);
 	}
+	printf("Done.\n");
 	return 0;
 }
 

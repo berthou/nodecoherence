@@ -6,7 +6,7 @@ void print_vector(gsl_vector *v,size_t size)
 	int i;
 	for(i=0;i<size;i++)
 	{
-			printf("%g\t",gsl_vector_get(v,i));
+			printf("%0.10g\t",gsl_vector_get(v,i));
 	}
 	printf("\n\n");
 }
@@ -18,7 +18,7 @@ void print_matrix(gsl_matrix *H,size_t size)
 	{
 		for(j=0;j<size;j++)
 		{
-			printf("%g ",gsl_matrix_get(H, i, j));
+			printf("%0.15g\t",gsl_matrix_get(H, i, j));
 		}
 		printf("\n");
 	}
@@ -56,9 +56,9 @@ void print_matrix(gsl_matrix *H,size_t size)
 		}											\
 	}while(0)
 
-float binomial_coeff(int n, int k)
+double binomial_coeff(int n, int k)
 {
-	float result = 1;
+	double result = 1;
 	int i;
 	if(n-2*k>0)
 	{
@@ -73,7 +73,7 @@ float binomial_coeff(int n, int k)
 	return result;
 }
 
-int *compute_state_list(int number,int base, int array_length)
+double *compute_state_list(int number,int base, int array_length)
 {
 	/* Convert number 'number' in base 'base'
 	 * the result is stored in an array of size 'array_length'
@@ -81,7 +81,7 @@ int *compute_state_list(int number,int base, int array_length)
 	 */
 
 	// Allocate result array
-	int *result = (int*)malloc(array_length*sizeof(int));
+	double *result = (double*)malloc(array_length*sizeof(double));
 
 	// Start to fill from the end of the array :
 	int index=array_length-1;

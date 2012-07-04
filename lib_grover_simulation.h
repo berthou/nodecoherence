@@ -1,6 +1,20 @@
 #ifndef LIB_GROVER_SIMULATION_CC
 #define LIB_GROVER_SIMULATION_CC
 
+void print_matrix(gsl_matrix *H,size_t size)
+{
+	int i,j;
+	for(i=0;i<size;i++)
+	{
+		for(j=0;j<size;j++)
+		{
+			printf("%g\t",gsl_matrix_get(H, i, j));
+		}
+		printf("\n");
+	}
+}
+
+
 #define COMPUTE_COMBFACTOR(Np,statens,M,var)											\
 	do {																				\
 		var = 1/(sqrt(pow(2,Np*M)));													\
@@ -92,7 +106,7 @@ size_t compute_matrix_size(n,p)
 	}while(0)
 
 
-float inner_product(float k,float kx,int np)
+double inner_product(double k,double kx,double np)
 {
 	// fact_iterator is used in the FACTORIAL macro
 	int i,
@@ -100,7 +114,7 @@ float inner_product(float k,float kx,int np)
 		stop,
 		fact_iterator;
 
-	float result=0,
+	double result=0,
 		  k_fact    = k,
 		  npk_fact  = np-k,
 		  kx_fact   = kx,

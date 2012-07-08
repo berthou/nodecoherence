@@ -79,3 +79,24 @@ echo:
 	$(EDITOR) preprocessor.c
 	rm preprocessor.c
 	rm main_pp.c
+
+#
+# Building dependencies :
+#
+dependencies : gsl
+
+gsl: download_gsl make_gsl install_gsl
+
+download_gsl:
+	@echo "Downloading GNU Scientific Library..."
+	@wget -q ftp://ftp.gnu.org/gnu/gsl/gsl-1.15.tar.gz
+	@echo "Extracting..."
+	@tar -zxf gsl-1.15.tar.gz
+
+make_gsl:
+	@echo "Compiling library..."
+	cd gsl-1.15 && ./configure && make -s
+
+install_gsl:
+	@echo "Installing library... [root password needed]"
+	@sudo make install

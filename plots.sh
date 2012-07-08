@@ -1,7 +1,7 @@
 #! /bin/bash
 
-make -B compile_production;
-make clean;
+make -Bs compile_production;
+make -Bs clean_production;
 
 ./test $@ 
 

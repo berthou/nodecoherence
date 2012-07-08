@@ -1,10 +1,14 @@
-Simulating Grover's algorithm with BECs (Bose-Einstein condensate) with no decoherence.
+Simulating Grover's algorithm with Bose-Einstein condensates with no decoherence.
 =============
 
 Download
 --------
 
-Run `git clone https://github.com/berthou/nodecoherence.git` or download & extract `https://github.com/berthou/nodecoherence/zipball/master`
+Run `git clone https://github.com/berthou/nodecoherence.git` 
+
+or download & extract 
+
+	https://github.com/berthou/nodecoherence/zipball/master
 
 Go to the main folder :
 

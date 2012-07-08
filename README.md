@@ -24,7 +24,7 @@ Dependencies
 
 The following dependencies are required :
 
-* [GNU Scientific Library](http://www.gnu.org/software/gsl/) -- run `make dependencies` to install the library (linux only) or install it by yourself
+* [GNU Scientific Library](http://www.gnu.org/software/gsl/) -- run `make dependencies` to install the library (unix only) or install it by yourself
 * [gnuplot](www.gnuplot.info/) -- (Optional)
 
 

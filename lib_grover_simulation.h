@@ -18,7 +18,7 @@ void print_matrix(gsl_matrix *H,size_t size)
 	{
 		for(j=0;j<size;j++)
 		{
-			printf("%0.15g\t",gsl_matrix_get(H, i, j));
+			printf("%0.17g\t",gsl_matrix_get(H, i, j));
 		}
 		printf("\n");
 	}
@@ -28,8 +28,8 @@ void print_matrix(gsl_matrix *H,size_t size)
 
 #define COMPUTE_COMBFACTOR(Np,statens,M,var)											\
 	do {																				\
-		var = 1/(sqrt(pow(2,Np*M)));													\
-		combfactor_product=1;													\
+		var = 1.0/(sqrt(pow(2,Np*M)));													\
+		combfactor_product=1.0;													\
 		for(combfactor_iterator=0;combfactor_iterator<M;combfactor_iterator++) \
 		{ 																		\
 			BINOMIAL_COEFF(Np,statens[combfactor_iterator],combfactor_bin);			\
@@ -43,22 +43,22 @@ void print_matrix(gsl_matrix *H,size_t size)
 
 #define BINOMIAL_COEFF(n,k,var)				\
 	do {										\
-		var = 1;								\
+		var = 1.0;								\
 		if(n-2*k>0)								\
 		{										\
 			for(binomial_iterator=n;binomial_iterator>=n-k+1;binomial_iterator--)				\
-			var=var*binomial_iterator/(n-binomial_iterator+1);		\
+			var=((double)(var*binomial_iterator)/(double)(n-binomial_iterator+1));		\
 		}										\
 		else									\
 		{										\
 			for(binomial_iterator=n;binomial_iterator>=k+1;binomial_iterator--)						\
-			var=var*binomial_iterator/(n-binomial_iterator+1);			\
+			var=((double)(var*binomial_iterator)/(double)(n-binomial_iterator+1));			\
 		}											\
 	}while(0)
 
 double binomial_coeff(int n, int k)
 {
-	double result = 1;
+	double result = 1.0;
 	int i;
 	if(n-2*k>0)
 	{
@@ -88,20 +88,20 @@ double *compute_state_list(int number,int base, int array_length)
 
 	while(number != 0)
 	{
-		result[index] = (number % base);
+		result[index] = (double)(number % base);
 		number= (number / base);
 		index--;
 	}
 	return result;
 }
 
-size_t compute_matrix_size(n,p)
+double compute_matrix_size(n,p)
 {
 	/*
 	 * Computes n^p and return the result as a size_t
 	 */
 	int i;
-	size_t result=n;
+	double result=n;
 	for(i=1;i<p;i++) {
 		result*=n;
 	}
@@ -120,10 +120,10 @@ size_t compute_matrix_size(n,p)
 double inner_product(double k,double kx,double np)
 {
 	// fact_iterator is used in the FACTORIAL macro
-	int i,
+	double i,
 		start,
-		stop,
-		fact_iterator;
+		stop;
+	double fact_iterator;
 
 	double result=0,
 		  k_fact    = k,

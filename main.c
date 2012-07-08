@@ -6,6 +6,12 @@
 
 #include "lib_grover_simulation.h"
 
+//#define BENCHMARK
+#define DEBUG_MATRIX
+
+#ifdef DEBUG_MATRIX
+#include <assert.h>
+#endif
 /* 
  *
  *		!!! check return values
@@ -24,10 +30,10 @@ int main(int argc, char **argv)
 	 * matelem_iterator is used as iterator to compute the diagonal-specific product 
 	 */
 
-	int M=atoi(argv[3]),
-		Np,
+	int	Np,
 		Np_start=atoi(argv[1]),
 		Np_stop=atoi(argv[2]),
+		M=atoi(argv[3]),
 		rows_iterator,
 		columns_iterator,
 		combfactor_iterator,
@@ -36,7 +42,7 @@ int main(int argc, char **argv)
 		matelem_sum_iterator;
 
 	double *statens,
-		*statensp;
+		   *statensp;
 
 	size_t matrix_size;
 
@@ -55,13 +61,17 @@ int main(int argc, char **argv)
 	gsl_eigen_symmv_workspace *eigen_workspace;
 	gsl_vector *energies;
 
+#ifdef BENCHMARK
 	printf("Starting at : ");
-	system("date");
-	printf("\n");
 	fflush(stdout);
+	system("date");
+#endif
 
+	//printf("%.17f\n",0.3);
 	for(Np=Np_start;Np<=Np_stop;Np++) {
-		//printf("Np = %d\n",Np);
+#ifndef BENCHMARK
+		printf("Np = %d\n",Np);
+#endif
 		// Get matrix size
 		matrix_size = compute_matrix_size(Np+1,M);
 		// Allocate matrix
@@ -73,7 +83,7 @@ int main(int argc, char **argv)
 		for(rows_iterator=0;rows_iterator<matrix_size;rows_iterator++) {
 			statens = compute_state_list(rows_iterator,Np+1,M);
 			COMPUTE_COMBFACTOR(Np,statens,M,combfactor[rows_iterator]);
-			szmatelem[rows_iterator]=(2.0*statens[0]-Np)/Np;	
+			szmatelem[rows_iterator]=(double)(((double)(2.0*statens[0]-Np))/(double)Np);	
 
 			// Iteration over columns of the matrix
 			for(columns_iterator=0;columns_iterator<matrix_size;columns_iterator++) {
@@ -106,7 +116,9 @@ int main(int argc, char **argv)
 
 			}
 		}
+#ifdef DEBUG_MATRIX
 		print_matrix(H,matrix_size);
+#endif
 		// Free no more needed arrays for this value of Np (size will increase with Np incrementation) :
 		free(statens);
 		free(statensp);
@@ -120,18 +132,22 @@ int main(int argc, char **argv)
 		gsl_eigen_symmv(H,energies,vectors,eigen_workspace);
 		// H is no more needed :
 		gsl_matrix_free(H);
-/*
-		printf("eigenvalues : \n\n");
-		print_vector(energies,matrix_size);
-		printf("eigenvectors : \n\n");
-		print_matrix(vectors,matrix_size);
-*/
+		/*
+		   printf("eigenvalues : \n\n");
+		   print_vector(energies,matrix_size);
+		   printf("eigenvectors : \n\n");
+		   print_matrix(vectors,matrix_size);
+		   */
+		gsl_vector_free(energies);
+		gsl_matrix_free(vectors);
+		gsl_eigen_symmv_free(eigen_workspace);
 		//free(combfactor);
 		//free(szmatelem);
+#ifdef BENCHMARK
 		printf("Np=%d completed at : ",Np);
-	system("date");
-	printf("\n");
-	fflush(stdout);
+		fflush(stdout);
+		system("date");
+#endif
 	}
 	printf("Done.\n");
 	return 0;

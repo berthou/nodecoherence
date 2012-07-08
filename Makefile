@@ -24,6 +24,8 @@ debug: compile_debug clean_debug exec
 
 benchmark: compile_bench clean_bench exec
 
+testing: compile_production clean_production exec_testing
+
 #
 # Compilation :
 #
@@ -65,6 +67,8 @@ clean_bench:
 #
 exec:
 	./$(EXECUTABLE) $(ARG)
+exec_testing:
+	./$(EXECUTABLE) 1 1 1
 
 #
 # Get preprocessor output (make pp) :

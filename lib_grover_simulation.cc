@@ -34,7 +34,7 @@ int verification(double *points,int M,int Np)
 			count_ten++;
 		}
 		if( diff > 0.0000000000001) {
-			printf("[%d]%.14f\t%.14f\n",i,points[i+41],M3N5_table[i].y);
+			//printf("[%d]%.14f\t%.14f\n",i,points[i+41],M3N5_table[i].y);
 			count_thirteen++;
 		}
 	}

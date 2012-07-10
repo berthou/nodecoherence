@@ -11,50 +11,50 @@
 
 int main(int argc, char **argv)
 {
+
 	/* number of bosons : M
 	 * number of sites  : Np
 	 * computing from Np_start to Np_stop (arguments from the command line)
 	 * The GNU Scientific Library is used for operations on matrices
 	 * rows_iterator and columns_iterator and used to run through the matrix H
-	 * binomial_iterator and combfactor_iterator are respectively used in the BINOMIAL_COEFF and COMPUTE_COMBFACTOR macros as iterators
-	 * combfactor_bin, combfactor_product are variables of the COMPUTE_COMBFACTOR macro
 	 * matelem_iterator is used as iterator to compute the diagonal-specific product 
 	 */
 
-	int M=atoi(argv[3]),
-		Np,
-		Np_start=atoi(argv[1]),
-		Np_stop=atoi(argv[2]),
-		rows_iterator,
-		columns_iterator,
-		combfactor_iterator,
-		binomial_iterator,
-		matelem_iterator,
-		matelem_sum_iterator,
-		notpoints=100;
 
-	double *statens,
-		   *statensp,
-		   *points,
-		   *combfactor,
-		   *szmatelem,
-		   *tempvector;
+	unsigned int M=(unsigned int)atoi(argv[3]),
+				 Np,
+				 Np_start=(unsigned int)atoi(argv[1]),
+				 Np_stop=(unsigned int)atoi(argv[2]),
+				 matrix_size,
+				 rows_iterator,
+				 columns_iterator,
+				 matelem_iterator,
+				 matelem_sum_iterator,
+				 *statens,
+				 *statensp;
 
 
-	int matrix_size;
-
-	double combfactor_bin,
-		   combfactor_product,
-		   matelem_diagonal_var,
+	double matelem_diagonal_var,
 		   matelem_product,
 		   matelem_sum,
-		   tmax=30;
+		   *combfactor,
+		   *szmatelem,
+		   *tempvector,
+		   *points;
+
+
+
+
+
+
+
+
 
 	gsl_matrix *H,
 			   *vectors;
-
 	gsl_eigen_symmv_workspace *eigen_workspace;
 	gsl_vector *energies;
+
 
 #ifdef BENCHMARK
 	printf("Starting at : ");
@@ -69,14 +69,14 @@ int main(int argc, char **argv)
 		/* Get matrix size */
 		matrix_size = compute_matrix_size(Np+1,M);
 		/* Allocate matrix */
-		H = gsl_matrix_calloc(matrix_size,matrix_size);
+		H = gsl_matrix_alloc(matrix_size,matrix_size);
 		/* Allocate combfactor and szmatelem arrays */
 		combfactor = (double*)malloc(matrix_size*sizeof(double));
 		szmatelem  = (double*)malloc(matrix_size*sizeof(double));
 		/* Iteration over rows of the matrix */
 		for(rows_iterator=0;rows_iterator<matrix_size;rows_iterator++) {
 			statens = compute_state_list(rows_iterator,Np+1,M);
-			COMPUTE_COMBFACTOR(Np,statens,M,combfactor[rows_iterator]);
+			combfactor[rows_iterator]=compute_combfactor(statens,Np,M);
 			szmatelem[rows_iterator]=(2.0*statens[0]-Np)/Np;	
 
 			/* Iteration over columns of the matrix */
@@ -87,7 +87,8 @@ int main(int argc, char **argv)
 				/* If we are on the diagonal of H : */
 				if (rows_iterator == columns_iterator) {
 					for(matelem_iterator=0;matelem_iterator<M;matelem_iterator++) {
-						matelem_diagonal_var*=(double)statens[matelem_iterator]/(double)Np;
+						matelem_diagonal_var*=((double)statens[matelem_iterator]/(double)Np);
+						/*printf(" diag : %f ",matelem_diagonal_var);*/
 					}
 				}
 				/* For every element of the matrix : */
@@ -95,22 +96,21 @@ int main(int argc, char **argv)
 				for(matelem_iterator=0;matelem_iterator<M;matelem_iterator++) {
 					matelem_sum=0.0;
 					for(matelem_sum_iterator=0;matelem_sum_iterator<=Np;matelem_sum_iterator++) {
-						matelem_sum+=(((double)matelem_sum_iterator/(double)Np)*inner_product((double)statens[matelem_iterator],(double)matelem_sum_iterator,(double)Np)*inner_product((double)statensp[matelem_iterator],(double)matelem_sum_iterator,(double)Np));
+						matelem_sum+=(matelem_sum_iterator/Np)*inner_product(statens[matelem_iterator],matelem_sum_iterator,Np)*inner_product(statensp[matelem_iterator],matelem_sum_iterator,Np);
 					}
 					matelem_product*=matelem_sum;
 				}
 				/* If we are on the diagonal of H (for affectation) : */
-				if (rows_iterator == columns_iterator) {
-					gsl_matrix_set(H,rows_iterator,columns_iterator,pow(Np,2)*(matelem_diagonal_var+matelem_product));
-				}
-				else {
-					gsl_matrix_set(H,rows_iterator,columns_iterator,pow(Np,2)*(matelem_product));
-				}
+				if (rows_iterator == columns_iterator)
+					gsl_matrix_set(H,rows_iterator,columns_iterator,gsl_pow_int(Np,2)*(matelem_diagonal_var+matelem_product));
+				else
+					gsl_matrix_set(H,rows_iterator,columns_iterator,gsl_pow_int(Np,2)*(matelem_product));
 
-				/* Free no more needed arrays for this value of Np (size will increase with Np incrementation) : */
+
+				/* Free no more needed arrays */
 				free(statensp);
 			}
-			/* Free no more needed arrays for this value of Np (size will increase with Np incrementation) : */
+			/* Free no more needed arrays */
 			free(statens);
 		}
 #ifdef DEBUG
@@ -143,18 +143,17 @@ int main(int argc, char **argv)
 		printf("szmatelem = \n\n");
 		print_vector_double(szmatelem,matrix_size);
 #endif
-		/* Compute points for plotting */
-		points = compute_overlap(szmatelem,tempvector,vectors,energies,matrix_size,Np,notpoints,tmax);
+		/* Compute points for plotting 
+		   points = compute_overlap(szmatelem,tempvector,vectors,energies,matrix_size,Np,notpoints,tmax);
 
-		write_to_file(points,Np,M,notpoints);
-		/* Free memory */
+		   write_to_file(points,Np,M,notpoints); */
+		/* Free memoru */
 		free(combfactor);
 		free(szmatelem);
-		free(points);
+
 		free(tempvector);
 		gsl_matrix_free(vectors);
 		gsl_vector_free(energies);
-
 #ifdef BENCHMARK
 		printf("Np=%d completed at : ",Np);
 		fflush(stdout);
@@ -164,4 +163,3 @@ int main(int argc, char **argv)
 	printf("Done.\n");
 	return 0;
 }
-

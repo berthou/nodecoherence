@@ -34,10 +34,11 @@ Compilation & execution
 To make sure that everything went fine run `make -s testing`. The output should be :
 
 	Np = 1
+	Agrees on at least 13 digits
 	Done.
 
 If you have gnuplot installed you can view the output graph by runnning 
 
-	./run-for-each-value.sh 1 1 1
+	./plots.sh 1 1 1
 
 You might change the arguments but the 2nd must be greater or equal than the 1st one and the last one should'nt be greater than 4 (too much computation needed).

@@ -8,7 +8,7 @@ CFLAGS_DEBUG=-ansi -pedantic -W -Wall -Wdouble-promotion -Wformat -Winline\
 	   -Wcast-qual -Wcast-align\
 	   -Wwrite-strings \
 	   -fshort-enums -fno-common -Dinline= -g
-CFLAGS=-m64 -O3 
+CFLAGS=-O3 
 #CPPFLAGS=-I/home/encad/berthoumieux/OpenCL/ocl_4.1/include
 #LDFLAGS=-L/home/encad/berthoumieux/OpenCL/ocl_4.1/lib -lOpenCL -loclUtil_x86_64 -lshrutil_x86_64 -lgmp
 
@@ -103,4 +103,4 @@ make_gsl:
 
 install_gsl:
 	@echo "Installing library... [root password needed]"
-	@sudo make install
+	@cd gsl-1.15 && sudo make install

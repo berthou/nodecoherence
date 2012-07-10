@@ -11,50 +11,43 @@
 
 int main(int argc, char **argv)
 {
-
 	/* number of bosons : M
 	 * number of sites  : Np
 	 * computing from Np_start to Np_stop (arguments from the command line)
 	 * The GNU Scientific Library is used for operations on matrices
-	 * rows_iterator and columns_iterator and used to run through the matrix H
-	 * matelem_iterator is used as iterator to compute the diagonal-specific product 
+	 * binomial_iterator and combfactor_iterator are respectively used in the BINOMIAL_COEFF and COMPUTE_COMBFACTOR macros as iterators
+	 * combfactor_bin, combfactor_product are variables of the COMPUTE_COMBFACTOR macro
 	 */
 
+	int M=atoi(argv[3]),
+		Np,
+		Np_start=atoi(argv[1]),
+		Np_stop=atoi(argv[2]),
+		matrix_size,
+		i,j,n,knx,
+		notpoints=40,
+		binomial_iterator,
+		combfactor_iterator;
 
-	unsigned int M=(unsigned int)atoi(argv[3]),
-				 Np,
-				 Np_start=(unsigned int)atoi(argv[1]),
-				 Np_stop=(unsigned int)atoi(argv[2]),
-				 matrix_size,
-				 rows_iterator,
-				 columns_iterator,
-				 matelem_iterator,
-				 matelem_sum_iterator,
-				 *statens,
-				 *statensp;
-
-
-	double matelem_diagonal_var,
-		   matelem_product,
-		   matelem_sum,
-		   *combfactor,
-		   *szmatelem,
-		   *tempvector,
-		   *points;
-
-
-
-
-
-
-
+	double *statens    = NULL,
+		   *statensp   = NULL,
+		   *points     = NULL,
+		   *combfactor = NULL,
+		   *szmatelem  = NULL,
+		   *tempvector = NULL,
+		   diag_var,
+		   matelem,
+		   sum,
+		   tmax=30,
+		   combfactor_bin,
+		   combfactor_product;
 
 
 	gsl_matrix *H,
 			   *vectors;
+
 	gsl_eigen_symmv_workspace *eigen_workspace;
 	gsl_vector *energies;
-
 
 #ifdef BENCHMARK
 	printf("Starting at : ");
@@ -62,56 +55,66 @@ int main(int argc, char **argv)
 	system("date");
 #endif
 
+	/* Allocate statens and statensp arrays */
+	statens  = (double*)malloc(M*sizeof(double));
+	statensp = (double*)malloc(M*sizeof(double));
+
 	for(Np=Np_start;Np<=Np_stop;Np++) {
 #ifndef BENCHMARK
 		printf("Np = %d\n",Np);
 #endif
 		/* Get matrix size */
-		matrix_size = compute_matrix_size(Np+1,M);
+		matrix_size=pow(Np+1,M);
 		/* Allocate matrix */
 		H = gsl_matrix_alloc(matrix_size,matrix_size);
-		/* Allocate combfactor and szmatelem arrays */
-		combfactor = (double*)malloc(matrix_size*sizeof(double));
-		szmatelem  = (double*)malloc(matrix_size*sizeof(double));
+		/* Allocate combfactor, szmatelemarrays */
+		combfactor = (double*)realloc(combfactor,matrix_size*sizeof(double));
+		szmatelem  = (double*)realloc(szmatelem,matrix_size*sizeof(double));
 		/* Iteration over rows of the matrix */
-		for(rows_iterator=0;rows_iterator<matrix_size;rows_iterator++) {
-			statens = compute_state_list(rows_iterator,Np+1,M);
-			combfactor[rows_iterator]=compute_combfactor(statens,Np,M);
-			szmatelem[rows_iterator]=(2.0*statens[0]-Np)/Np;	
+		for(i=0;i<matrix_size;i++)
+		{
+			compute_state_list(i,Np+1,M,statens);
+			COMPUTE_COMBFACTOR(Np,statens,M,combfactor[i]);
+			szmatelem[i]=(2.0*statens[0]-(double)Np)/(double)Np;
 
 			/* Iteration over columns of the matrix */
-			for(columns_iterator=0;columns_iterator<matrix_size;columns_iterator++) {
-				statensp = compute_state_list(columns_iterator,Np+1,M);
-				matelem_diagonal_var=1.0;
+			for(j=0;j<matrix_size;j++)
+			{
+				compute_state_list(j,Np+1,M,statensp);
 
 				/* If we are on the diagonal of H : */
-				if (rows_iterator == columns_iterator) {
-					for(matelem_iterator=0;matelem_iterator<M;matelem_iterator++) {
-						matelem_diagonal_var*=((double)statens[matelem_iterator]/(double)Np);
-						/*printf(" diag : %f ",matelem_diagonal_var);*/
+				if(i==j)
+				{
+					diag_var=1.0;
+					for(n=0;n<M;n++)
+					{
+						diag_var*=(statens[n]/(double)Np);
 					}
 				}
-				/* For every element of the matrix : */
-				matelem_product=1.0;
-				for(matelem_iterator=0;matelem_iterator<M;matelem_iterator++) {
-					matelem_sum=0.0;
-					for(matelem_sum_iterator=0;matelem_sum_iterator<=Np;matelem_sum_iterator++) {
-						matelem_sum+=(matelem_sum_iterator/Np)*inner_product(statens[matelem_iterator],matelem_sum_iterator,Np)*inner_product(statensp[matelem_iterator],matelem_sum_iterator,Np);
+				/* For the upper part of the matrix : */
+				if(j>=i) 
+				{
+					matelem=1.0;
+					for(n=0;n<M;n++)
+					{
+						sum=0.0;
+						for(knx=0;knx<=Np;knx++)
+						{
+							sum+=((double)knx/(double)Np)*inner_product(statens[n],(double)knx,(double)Np)*inner_product(statensp[n],(double)knx,(double)Np);
+						}
+						matelem*=sum;
 					}
-					matelem_product*=matelem_sum;
+					if (i==j)
+					{
+						gsl_matrix_set(H,i,i,pow(Np,2)*(matelem+diag_var));
+					}
+					else
+					{
+						gsl_matrix_set(H,i,j,pow(Np,2)*matelem);
+						gsl_matrix_set(H,j,i,pow(Np,2)*matelem);
+					}
 				}
-				/* If we are on the diagonal of H (for affectation) : */
-				if (rows_iterator == columns_iterator)
-					gsl_matrix_set(H,rows_iterator,columns_iterator,gsl_pow_int(Np,2)*(matelem_diagonal_var+matelem_product));
-				else
-					gsl_matrix_set(H,rows_iterator,columns_iterator,gsl_pow_int(Np,2)*(matelem_product));
-
-
-				/* Free no more needed arrays */
-				free(statensp);
 			}
-			/* Free no more needed arrays */
-			free(statens);
 		}
 #ifdef DEBUG
 		print_matrix(H,matrix_size);
@@ -143,23 +146,30 @@ int main(int argc, char **argv)
 		printf("szmatelem = \n\n");
 		print_vector_double(szmatelem,matrix_size);
 #endif
-		/* Compute points for plotting 
-		   points = compute_overlap(szmatelem,tempvector,vectors,energies,matrix_size,Np,notpoints,tmax);
+		/* Compute points for plotting */
+		points = compute_overlap(szmatelem,tempvector,vectors,energies,matrix_size,Np,notpoints,tmax);
 
-		   write_to_file(points,Np,M,notpoints); */
-		/* Free memoru */
-		free(combfactor);
-		free(szmatelem);
-
+		write_to_file(points,Np,M,notpoints);
+		/* Free memory */
+		free(points);
 		free(tempvector);
 		gsl_matrix_free(vectors);
 		gsl_vector_free(energies);
+
 #ifdef BENCHMARK
 		printf("Np=%d completed at : ",Np);
 		fflush(stdout);
 		system("date");
 #endif
+		/* Compare results to Mathematica */
+		verification(points,M,Np);
 	}
+
+	free(combfactor);
+	free(szmatelem);
+	free(statens);
+	free(statensp);
 	printf("Done.\n");
 	return 0;
 }
+

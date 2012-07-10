@@ -1,6 +1,71 @@
 #ifndef LIB_GROVER_SIMULATION_CC
 #define LIB_GROVER_SIMULATION_CC
 
+int verification(double *points,int M,int Np)
+{
+	int i,
+		count_five=0,
+		count_thirteen=0,
+		count_ten=0;
+
+	double diff;
+
+	for(i=0;i<41;i++)
+	{
+		if (M==1)
+			diff = fabs(points[i+41] - M1N_table[i].y);
+		else if (M==2 && Np==1)
+			diff = fabs(points[i+41] - M2N1_table[i].y);
+		else if (M==2 && Np==10)
+			diff = fabs(points[i+41] - M2N10_table[i].y);
+		else if (M==3 && Np==1)
+			diff = fabs(points[i+41] - M3N1_table[i].y);
+		else if (M==3 && Np==5)
+			diff = fabs(points[i+41] - M3N5_table[i].y);
+		else {
+			printf("No data to compare.\n");
+			return -1;
+		}
+
+		if( diff > 0.00001) {
+			count_five++;
+		}
+		if( diff > 0.0000000001) {
+			count_ten++;
+		}
+		if( diff > 0.0000000000001) {
+			printf("[%d]%.14f\t%.14f\n",i,points[i+41],M3N5_table[i].y);
+			count_thirteen++;
+		}
+	}
+	if (count_thirteen)
+	{
+		if (count_ten) 
+		{
+			//printf("Errors on %d points on 10 digits\n",count_ten);
+			if (count_five)
+			{
+				//printf("Errors on %d points on 5 digits\n",count_five);
+				//return count_ten;
+			}
+			else 
+			{
+				printf("Agrees on at least 5 digits\n");
+			}
+		}
+		else 
+		{
+			printf("Agrees on at least 10 digits\n");
+		}
+	}
+	else 
+	{
+		printf("Agrees on at least 13 digits\n");
+	}
+	fflush(stdout);
+	return count_thirteen;
+}
+
 void write_to_file(double *data,int Np,int M,int size)
 {
 	int i,
@@ -14,7 +79,7 @@ void write_to_file(double *data,int Np,int M,int size)
 		 n[5];
 
 	/* Build filename = "M(value of M)N(value of N).dat"
-	 */
+	*/
 	memset(filename,0,15);
 	memset(m,0,2);
 	memset(n,0,5);
@@ -25,7 +90,7 @@ void write_to_file(double *data,int Np,int M,int size)
 	snprintf(n,sizeof(n),"%d",Np);
 	strcat(filename,n);
 	strcat(filename,".dat");
-	
+
 	/* Open file */
 	if((file_desc=open(filename,O_WRONLY | O_CREAT | O_TRUNC, 00600))== -1)
 	{
@@ -79,7 +144,7 @@ double *compute_overlap(double *szmatelem,double *tempvector,gsl_matrix *inverse
 
 
 
-inline double *compute_tempvector(double *combfactor, gsl_matrix *inversevector,int matrix_size)
+double *compute_tempvector(double *combfactor, gsl_matrix *inversevector,int matrix_size)
 {
 	double *result = (double*)malloc(matrix_size*sizeof(double));
 	int i,j;
@@ -132,8 +197,8 @@ void print_matrix(gsl_matrix *H,int size)
 
 #define COMPUTE_COMBFACTOR(Np,statens,M,var)											\
 	do {																				\
-		var = 1/(sqrt(pow(2,Np*M)));													\
-		combfactor_product=1;													\
+		var = 1.0/(sqrt(pow(2,Np*M)));													\
+		combfactor_product=1.0;													\
 		for(combfactor_iterator=0;combfactor_iterator<M;combfactor_iterator++) \
 		{ 																		\
 			BINOMIAL_COEFF(Np,statens[combfactor_iterator],combfactor_bin);			\
@@ -147,7 +212,7 @@ void print_matrix(gsl_matrix *H,int size)
 
 #define BINOMIAL_COEFF(n,k,var)				\
 	do {										\
-		var = 1;								\
+		var = 1.0;								\
 		if(n-2*k>0)								\
 		{										\
 			for(binomial_iterator=n;binomial_iterator>=n-k+1;binomial_iterator--)				\
@@ -160,43 +225,26 @@ void print_matrix(gsl_matrix *H,int size)
 		}											\
 	}while(0)
 
-double binomial_coeff(int n, int k)
-{
-	double result = 1;
-	int i;
-	if(n-2*k>0)
-	{
-		for(i=n;i>=n-k+1;i--)
-			result=result*i/(n-i+1);
-	}
-	else
-	{
-		for(i=n;i>=k+1;i--)
-			result=result*i/(n-i+1);
-	}
-	return result;
-}
-
-double *compute_state_list(int number,int base, int array_length)
+void compute_state_list(int number,int base, int M, double *data)
 {
 	/* Convert number 'number' in base 'base'
 	 * the result is stored in an array of size 'array_length'
 	 * with LSB representation
 	 */
 
-	/* Allocate result array */
-	double *result = (double*)malloc(array_length*sizeof(double));
+	int iterator = M;
 
 	/* Start to fill from the end of the array : */
-	int index=array_length-1;
+	int index=M-1;
 
-	while(number != 0)
+	while(iterator != 0)
 	{
-		result[index] = (number % base);
+		data[index] = (number % base);
 		number= (number / base);
 		index--;
+
+		iterator--;
 	}
-	return result;
 }
 
 int compute_matrix_size(int n,int p)

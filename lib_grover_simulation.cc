@@ -10,22 +10,32 @@ int verification(double *points,int M,int Np)
 
 	double diff;
 
+	point *data;
+
+	if (M==1)
+		data = M1N_table;
+	else if (M==2 && Np==1)
+		data = M2N1_table;
+	else if (M==2 && Np==10)
+		data = M2N10_table;
+	else if (M==3 && Np==1)
+		data = M3N1_table;
+	else if (M==3 && Np==5)
+		data = M3N5_table;
+	else if (M==4 && Np==1)
+		data = M4N1_table;
+	else if (M==4 && Np==2)
+		data = M4N2_table;
+	else if (M==4 && Np==3)
+		data = M4N3_table;
+	else {
+		printf("No data to compare.\n");
+		return -1;
+	}
+
 	for(i=0;i<41;i++)
 	{
-		if (M==1)
-			diff = fabs(points[i+41] - M1N_table[i].y);
-		else if (M==2 && Np==1)
-			diff = fabs(points[i+41] - M2N1_table[i].y);
-		else if (M==2 && Np==10)
-			diff = fabs(points[i+41] - M2N10_table[i].y);
-		else if (M==3 && Np==1)
-			diff = fabs(points[i+41] - M3N1_table[i].y);
-		else if (M==3 && Np==5)
-			diff = fabs(points[i+41] - M3N5_table[i].y);
-		else {
-			printf("No data to compare.\n");
-			return -1;
-		}
+		diff = fabs(points[i+41] - data[i].y);
 
 		if( diff > 0.00001) {
 			count_five++;
@@ -34,7 +44,8 @@ int verification(double *points,int M,int Np)
 			count_ten++;
 		}
 		if( diff > 0.0000000000001) {
-			//printf("[%d]%.14f\t%.14f\n",i,points[i+41],M3N5_table[i].y);
+			if (M>1)
+				printf("Differs between 10th and 13th digit : [%d]%.15f\n",i,diff);
 			count_thirteen++;
 		}
 	}

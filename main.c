@@ -29,9 +29,10 @@ int main(int argc, char **argv)
 		binomial_iterator,
 		combfactor_iterator;
 
-	double *statens    = NULL,
-		   *statensp   = NULL,
-		   *points     = NULL,
+	int	   *statens    = NULL,
+		   *statensp   = NULL;
+
+	double *points     = NULL,
 		   *combfactor = NULL,
 		   *szmatelem  = NULL,
 		   *tempvector = NULL,
@@ -42,6 +43,7 @@ int main(int argc, char **argv)
 		   combfactor_bin,
 		   combfactor_product;
 
+    double *innerprod  = NULL;
 
 	gsl_matrix *H,
 			   *vectors;
@@ -56,13 +58,18 @@ int main(int argc, char **argv)
 #endif
 
 	/* Allocate statens and statensp arrays */
-	statens  = (double*)malloc(M*sizeof(double));
-	statensp = (double*)malloc(M*sizeof(double));
+	statens  = (int*)malloc(M*sizeof(int));
+	statensp = (int*)malloc(M*sizeof(int));
+
 
 	for(Np=Np_start;Np<=Np_stop;Np++) {
 #ifndef BENCHMARK
 		printf("Np = %d\n",Np);
 #endif
+		/* Get the inner_product pointer */
+		innerprod=get_innerproduct_pointer(Np);
+		if (innerprod==NULL)
+			return -1;
 		/* Get matrix size */
 		matrix_size=pow(Np+1,M);
 		/* Allocate matrix */
@@ -100,7 +107,7 @@ int main(int argc, char **argv)
 						sum=0.0;
 						for(knx=0;knx<=Np;knx++)
 						{
-							sum+=((double)knx/(double)Np)*inner_product(statens[n],(double)knx,(double)Np)*inner_product(statensp[n],(double)knx,(double)Np);
+							sum+=((double)knx/(double)Np)*innerprod[statens[n]*(Np+1)+knx]*innerprod[statensp[n]*(Np+1)+knx];
 						}
 						matelem*=sum;
 					}

@@ -1,6 +1,59 @@
 #ifndef LIB_GROVER_SIMULATION_CC
 #define LIB_GROVER_SIMULATION_CC
 
+double *get_innerproduct_pointer(int Np)
+{
+	double *pointer;
+	
+	if(Np==1)
+		pointer=innerprodN1;
+	else if(Np==2)
+		pointer=innerprodN2;
+	else if(Np==3)
+		pointer=innerprodN3;
+	else if(Np==4)
+		pointer=innerprodN4;
+	else if(Np==5)
+		pointer=innerprodN5;
+	else if(Np==6)
+		pointer=innerprodN6;
+	else if(Np==7)
+		pointer=innerprodN7;
+	else if(Np==8)
+		pointer=innerprodN8;
+	else if(Np==9)
+		pointer=innerprodN9;
+	else if(Np==10)
+		pointer=innerprodN10;
+	else if(Np==11)
+		pointer=innerprodN11;
+	else if(Np==12)
+		pointer=innerprodN12;
+	else if(Np==13)
+		pointer=innerprodN13;
+	else if(Np==14)
+		pointer=innerprodN14;
+	else if(Np==15)
+		pointer=innerprodN15;
+	else if(Np==16)
+		pointer=innerprodN16;
+	else if(Np==17)
+		pointer=innerprodN17;
+	else if(Np==18)
+		pointer=innerprodN18;
+	else if(Np==19)
+		pointer=innerprodN19;
+	else if(Np==20)
+		pointer=innerprodN20;
+	else
+	{
+		printf("No pre-computed innerproduct\n");
+		return NULL;
+	}
+
+	return pointer;
+}
+
 int verification(double *points,int M,int Np)
 {
 	int i,
@@ -44,8 +97,8 @@ int verification(double *points,int M,int Np)
 			count_ten++;
 		}
 		if( diff > 0.0000000000001) {
-			if (M>1)
-				printf("Differs between 10th and 13th digit : [%d]%.15f\n",i,diff);
+			/*if (M>2)
+				printf("Differs between 10th and 13th digit : [%d]%.20f\n",i,diff);*/
 			count_thirteen++;
 		}
 	}
@@ -53,11 +106,11 @@ int verification(double *points,int M,int Np)
 	{
 		if (count_ten) 
 		{
-			//printf("Errors on %d points on 10 digits\n",count_ten);
+			/*printf("Errors on %d points on 10 digits\n",count_ten);*/
 			if (count_five)
 			{
-				//printf("Errors on %d points on 5 digits\n",count_five);
-				//return count_ten;
+				/*printf("Errors on %d points on 5 digits\n",count_five);*/
+				/*return count_ten;*/
 			}
 			else 
 			{
@@ -236,7 +289,7 @@ void print_matrix(gsl_matrix *H,int size)
 		}											\
 	}while(0)
 
-void compute_state_list(int number,int base, int M, double *data)
+void compute_state_list(int number,int base, int M, int *data)
 {
 	/* Convert number 'number' in base 'base'
 	 * the result is stored in an array of size 'array_length'
